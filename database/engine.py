@@ -5,7 +5,7 @@ from config import get_settings
 from database.base import Base
 
 settings = get_settings()
-engine = create_engine(url=settings.SQLALCHEMY_DATABASE_URL)
+engine = create_engine(url=settings.DATABASE_URL)
 
 Session = sessionmaker(autoflush=False, autocommit=False, bind=engine)
 

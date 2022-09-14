@@ -15,7 +15,7 @@ import databases
 import uvicorn
 
 settings = get_settings()
-database = databases.Database(settings.SQLALCHEMY_DATABASE_URL)
+database = databases.Database(settings.DATABASE_URL)
 
 
 def get_application() -> FastAPI:
@@ -51,11 +51,12 @@ def get_application() -> FastAPI:
                                 message='Validation Failed').dict(),
         )
 
+    # create_db()
+
     return application
 
 
 app = get_application()
 
 if __name__ == "__main__":
-    create_db()
     uvicorn.run("main:app", host="localhost", port=80, reload=True)

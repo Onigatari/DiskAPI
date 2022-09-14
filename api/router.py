@@ -27,61 +27,48 @@ def import_reqest(files: SystemItemImportRequest, session: Session = Depends(get
     """
     Импортирует элементы файловой системы.
     """
+
     id_set = set()
     parent_set = set()
     file_set = set()
+    
     for file_item in files.items:
-
-        # если элемент уже есть в загрузке, возвращаем ошибку
         if str(file_item.id) in id_set:
-            raise HTTPException(status_code=400, detail='id already exists in batch!')
+            raise HTTPException(status_code=400, detail='Item with this ID already exists')
+
         id_set.add(str(file_item.id))
 
-        # нужно проверить не ссылается ли parentid на FILE
         file_parent = session.query(SystemItem).filter(SystemItem.id == file_item.parentId).one_or_none()
 
-        # если тип элемента файл - запишем его в множество, чтобы потом проверить
-        # пересечение множеств. Если множества пересекаются, то есть ссылка на файл!
-        if str(file_item.type) == 'FILE':
-            file_set.add(str(file_item.type))
-
-        # если элемент есть, то проверяем, не является ли parent FILE
         if file_item.parentId is not None:
             if file_parent is not None:
                 if file_parent.type == SystemItemType.FILE:
-                    raise HTTPException(status_code=400, detail='File can not be a parent!')
-            # если в базе его нет, добавим id в множество родителей,
-            # и он гарантированно должен быть в загрузке
+                    raise HTTPException(status_code=400, detail='File can\'t be a parent')
             else:
                 parent_set.add(str(file_item.parentId))
 
-        # считываем дату из запроса
+        if str(file_item.type) == 'FILE':
+            file_set.add(str(file_item.type))
+
         file_item.date = files.update_date
-        # проверяем, есть ли элемент в базе
-        system_item_model = session.query(SystemItem).filter(
-            SystemItem.id == file_item.id).one_or_none()
-        # если элемент есть:
-        # проверяем, не изменился ли его тип
+        system_item_model = session.query(SystemItem).filter(SystemItem.id == file_item.id).one_or_none()
         if system_item_model is not None:
             if system_item_model.type != file_item.type:
-                # менять тип элемента не допускается
                 raise HTTPException(status_code=400, detail='Can\'t change type items')
-            # добавим в session
+
             for var, value in vars(file_item).items():
                 setattr(system_item_model, var, value)
             session.add(system_item_model)
         else:
             session.add(SystemItem(**file_item.dict()))
 
-        #     перед коммитом проверим ссылки parent на FILE
         if not (id_set >= parent_set):
             raise HTTPException(status_code=400, detail='Impossible parent link')
         if file_set.intersection(parent_set) != set():
             raise HTTPException(status_code=400, detail='Can\'t be a parent')
 
         session.commit()
-    #     вот здесь нужно запросить данные из базы
-    #     с датой равной дате загрузки
+        
     date = files.update_date
     updated_items = session.query(SystemItem).filter(SystemItem.date == date).all()
 
@@ -96,9 +83,9 @@ def import_reqest(files: SystemItemImportRequest, session: Session = Depends(get
             if str(item.parent_id) is not "None":
                 temp["parent_id"] = str(item.parent_id)
 
+            session.add(HistoryItem(**temp))
             temp["size"] = item_get_size(item)
             temp["date"] = str(item.date.astimezone(datetime.timezone.utc))
-            session.add(HistoryItem(**temp))
 
         session.commit()
 
@@ -122,17 +109,17 @@ def get_reqest(id: Union[UUID, str], session: Session = Depends(get_session)):
         while len(temp):
             last, index = temp[-1][0], temp[-1][1]
             child = last.get_child(index)
-            if child is None:
-                last.size = temp[-1][2]
-                if len(temp) > 1:
-                    temp[-2][2] += temp[-1][2]
-                temp.pop()
-            else:
+            if child is not None:
                 temp[-1][1] += 1
                 if child.type == SystemItemType.FILE:
                     temp[-1][2] += child.size
                 else:
                     temp.append([child, 0, 0])
+            else:
+                last.size = temp[-1][2]
+                if len(temp) > 1:
+                    temp[-2][2] += temp[-1][2]
+                temp.pop()
     return element
 
 
