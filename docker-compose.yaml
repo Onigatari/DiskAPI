@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  database:
+    container_name: yandex_disk_db
+    image: postgres:14.3-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+    volumes:
+      - ./database/data:/var/lib/postgresql/data
+      - ./database/backups:/backups
+#  web:
+#    container_name: yandex_disk_api
+#    hostname: localhost
+#    build: .
+#    command: uvicorn main:app --host 0.0.0.0 --port 80 --reload
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - database

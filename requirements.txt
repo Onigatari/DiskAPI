@@ -1,0 +1,11 @@
+pydantic~=1.10.2
+loguru~=0.6.0
+fastapi~=0.83.0
+SQLAlchemy~=1.4.41
+starlette~=0.19.1
+databases~=0.6.1
+uvicorn~=0.18.3
+sqlalchemy_utils~=0.38.3
+python-dotenv~=0.21.0
+psycopg2~=2.9.3
+asyncpg~=0.26.0
