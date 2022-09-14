@@ -11,5 +11,4 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
-EXPOSE 5432
 EXPOSE 80

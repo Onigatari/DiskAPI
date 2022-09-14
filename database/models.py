@@ -8,9 +8,9 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy_utils import ChoiceType
-from database.engine import Session
 
-from database.base import Base
+from database.engine import Session
+from database.base import Base, HistoryBase
 
 
 class SystemItemType(str, enum.Enum):
@@ -20,9 +20,8 @@ class SystemItemType(str, enum.Enum):
 
 class SystemItem(Base):
     __tablename__ = "system_item"
-    id = Column(String, primary_key=True, nullable=False)
     url = Column(String, nullable=True)
-    date = Column(DateTime(timezone=datetime.timezone.utc), nullable=False)
+    date = Column(DateTime(timezone=datetime.timezone.utc), nullable=False, default=datetime.datetime.utcnow)
     type = Column(ChoiceType(SystemItemType, impl=String()), nullable=False)
     parentId = Column(UUID(as_uuid=True), ForeignKey('system_item.id'),
                       index=True, default=None,
@@ -47,14 +46,13 @@ class SystemItem(Base):
         return f'<SystemItem {self.name}>'
 
 
-class HistoryItem(Base):
+class HistoryItem(HistoryBase):
     __tablename__ = "history_item"
-    self_id = Column(Integer, primary_key=True, autoincrement=True)
-    id = Column(String, ForeignKey('item.id', ondelete='CASCADE'), nullable=False)
+    id = Column(String, ForeignKey('system_item.id', ondelete='CASCADE'), nullable=False)
     url = Column(String, nullable=True)
     date = Column(DateTime(timezone=datetime.timezone.utc), primary_key=True, nullable=False)
     type = Column(ChoiceType(SystemItemType, impl=String()), nullable=False)
-    parent_id = Column(String, default=None, nullable=True)
+    parentId = Column(UUID(as_uuid=True), default=None, nullable=True)
     size = Column(Integer, nullable=True)
 
     def __str__(self):
@@ -66,9 +64,9 @@ class HistoryItem(Base):
 
 @event.listens_for(SystemItem, 'after_insert')
 def do_something(mapper, connection: Connection, target):
-    if target.parent_id is not None:
+    if target.parentId is not None:
         session = Session()
-        parent = session.query(SystemItem).filter_by(id=target.parent_id).one()
+        parent = session.query(SystemItem).filter_by(id=target.parentId).one()
         parent.date = target.date
         session.add(parent)
         session.commit()
@@ -76,9 +74,9 @@ def do_something(mapper, connection: Connection, target):
 
 @event.listens_for(SystemItem, 'after_update')
 def do_something(mapper, connection: Connection, target: SystemItem):
-    if target.parent_id is not None:
+    if target.parentId is not None:
         session = Session()
-        parent = session.query(SystemItem).filter_by(id=target.parent_id).one()
+        parent = session.query(SystemItem).filter_by(id=target.parentId).one()
         parent.date = target.date
         session.add(parent)
         session.commit()

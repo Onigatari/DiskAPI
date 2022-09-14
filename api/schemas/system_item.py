@@ -97,9 +97,9 @@ class SystemItemResponseSchema(SystemItemBaseSchema):
 
 
 class HistoryBaseSchema(BaseModel):
-    id: str
+    id: UUID
     url: Optional[str]
-    parent_id: Optional[str] = Field(alias='parentId')
+    parentId: Optional[UUID] = Field(alias='parentId')
     size: Optional[int]
     type: SystemItemType
     date: Optional[datetime]

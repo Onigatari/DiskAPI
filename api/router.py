@@ -80,8 +80,8 @@ def import_reqest(files: SystemItemImportRequest, session: Session = Depends(get
                 "url": item.url
             }
 
-            if str(item.parent_id) is not "None":
-                temp["parent_id"] = str(item.parent_id)
+            if str(item.parentId) is not None:
+                temp["parentId"] = str(item.parentId)
 
             session.add(HistoryItem(**temp))
             temp["size"] = item_get_size(item)

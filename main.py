@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from time import sleep
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -51,12 +52,16 @@ def get_application() -> FastAPI:
                                 message='Validation Failed').dict(),
         )
 
-    # create_db()
-
     return application
 
 
 app = get_application()
 
+
+@app.on_event("startup")
+async def on_startup():
+    create_db()
+
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="localhost", port=80, reload=True)
+    uvicorn.run("main:app", host="localhost", port=80, reload=True, debug=settings.DEBUG)
