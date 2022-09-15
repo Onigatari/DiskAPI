@@ -96,31 +96,32 @@ class SystemItemResponseSchema(SystemItemBaseSchema):
         return None
 
 
-class HistoryBaseSchema(BaseModel):
-    id: UUID
-    url: Optional[str]
-    parentId: Optional[UUID] = Field(alias='parentId')
-    size: Optional[int]
-    type: SystemItemType
-    date: Optional[datetime]
-
-    class Config:
-        use_enum_values = True
-        arbitrary_types_allowed = True
-        orm_mode = True
-        allow_population_by_field_name = True
-
-    @validator("date")
-    def date_conversion(cls, v):
-        return convert_datetime_to_iso_8601_with_z_suffix(v)
-
-
-class HistoryResponseSchema(BaseModel):
-    items: List[HistoryBaseSchema]
-
+# class HistoryBaseSchema(BaseModel):
+#     id: UUID
+#     url: Optional[str]
+#     parentId: Optional[UUID] = Field(alias='parentId')
+#     size: Optional[int]
+#     type: SystemItemType
+#     date: Optional[datetime]
+#
+#     class Config:
+#         use_enum_values = True
+#         arbitrary_types_allowed = True
+#         orm_mode = True
+#         allow_population_by_field_name = True
+#
+#     @validator("date")
+#     def date_conversion(cls, v):
+#         return convert_datetime_to_iso_8601_with_z_suffix(v)
+#
+#
+# class HistoryResponseSchema(BaseModel):
+#     items: List[HistoryBaseSchema]
+#
+#
 
 class SystemItemStatisticResponse(BaseModel):
-    items: List[HistoryBaseSchema]
+    items: List[SystemItemBaseSchema]
 
     class Config:
         orm_mode = True

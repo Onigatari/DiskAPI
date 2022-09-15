@@ -57,11 +57,7 @@ def get_application() -> FastAPI:
 
 app = get_application()
 
-
-@app.on_event("startup")
-async def on_startup():
-    create_db()
-
-
 if __name__ == "__main__":
+    create_db()
+    sleep(5)
     uvicorn.run("main:app", host="localhost", port=80, reload=True, debug=settings.DEBUG)

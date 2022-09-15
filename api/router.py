@@ -5,14 +5,13 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 from typing import Dict, Union
 from uuid import UUID
-from api.schemas.system_item import SystemItemImportRequest, SystemItemSchema, SystemItemStatisticResponse, \
-    SystemItemResponseSchema, HistoryResponseSchema
+from api.schemas.system_item import SystemItemImportRequest, SystemItemSchema, SystemItemResponseSchema, SystemItemStatisticResponse
 
 from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from api.schemas.responses import HTTP_400_RESPONSE, HTTP_404_RESPONSE
 
 from database.engine import get_session
-from database.models import SystemItem, SystemItemType, HistoryItem
+from database.models import SystemItem, SystemItemType
 
 router = APIRouter()
 
@@ -31,7 +30,7 @@ def import_reqest(files: SystemItemImportRequest, session: Session = Depends(get
     id_set = set()
     parent_set = set()
     file_set = set()
-    
+
     for file_item in files.items:
         if str(file_item.id) in id_set:
             raise HTTPException(status_code=400, detail='Item with this ID already exists')
@@ -68,7 +67,7 @@ def import_reqest(files: SystemItemImportRequest, session: Session = Depends(get
             raise HTTPException(status_code=400, detail='Can\'t be a parent')
 
         session.commit()
-        
+
     date = files.update_date
     updated_items = session.query(SystemItem).filter(SystemItem.date == date).all()
 
@@ -83,7 +82,8 @@ def import_reqest(files: SystemItemImportRequest, session: Session = Depends(get
             if str(item.parentId) is not None:
                 temp["parentId"] = str(item.parentId)
 
-            session.add(HistoryItem(**temp))
+            # session.add(HistoryItem(**temp))
+
             temp["size"] = item_get_size(item)
             temp["date"] = str(item.date.astimezone(datetime.timezone.utc))
 
@@ -164,25 +164,25 @@ def updates_reqest(date: datetime.datetime, session: Session = Depends(get_sessi
     return SystemItemStatisticResponse(items=items)
 
 
-@router.get('/node/{id}/history',
-            response_model=HistoryResponseSchema, response_model_by_alias=True,
-            tags=['Дополнительные задачи'])
-def history_reqest(id: str, dateStart: datetime.datetime = None, dateEnd: datetime.datetime = None,
-                   session: Session = Depends(get_session)):
-    """
-    Получить информацию об элементе по идентификатору.
-    """
-    if dateStart is None:
-        dateStart = datetime.datetime.min
-    if dateEnd is None:
-        dateEnd = datetime.datetime.max
-
-    items = session.query(HistoryItem).filter(
-        HistoryItem.id == id,
-        HistoryItem.date >= dateStart,
-        HistoryItem.date < dateEnd).all()
-
-    return {"items": items}
+# @router.get('/node/{id}/history',
+#             response_model=HistoryResponseSchema, response_model_by_alias=True,
+#             tags=['Дополнительные задачи'])
+# def history_reqest(id: str, dateStart: datetime.datetime = None, dateEnd: datetime.datetime = None,
+#                    session: Session = Depends(get_session)):
+#     """
+#     Получить информацию об элементе по идентификатору.
+#     """
+#     if dateStart is None:
+#         dateStart = datetime.datetime.min
+#     if dateEnd is None:
+#         dateEnd = datetime.datetime.max
+#
+#     items = session.query(HistoryItem).filter(
+#         HistoryItem.id == id,
+#         HistoryItem.date >= dateStart,
+#         HistoryItem.date < dateEnd).all()
+#
+#     return {"items": items}
 
 
 def item_get_size(item: SystemItem):

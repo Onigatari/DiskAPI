@@ -17,12 +17,12 @@ class Base:
         return "_".join(name_list).lower()
 
 
-@as_declarative()
-class HistoryBase:
-    __name__: str
-    self_id = Column(UUID(as_uuid=True), primary_key=True, index=True, nullable=False, default=uuid.uuid4)
-
-    @declared_attr
-    def __tablename__(cls) -> str:
-        name_list = re.findall(r"[A-Z][a-z\d]*", cls.__name__)
-        return "_".join(name_list).lower()
+# @as_declarative()
+# class HistoryBase:
+#     __name__: str
+#     self_id = Column(UUID(as_uuid=True), primary_key=True, index=True, nullable=False, default=uuid.uuid4)
+#
+#     @declared_attr
+#     def __tablename__(cls) -> str:
+#         name_list = re.findall(r"[A-Z][a-z\d]*", cls.__name__)
+#         return "_".join(name_list).lower()

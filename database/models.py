@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy_utils import ChoiceType
 
 from database.engine import Session
-from database.base import Base, HistoryBase
+from database.base import Base
 
 
 class SystemItemType(str, enum.Enum):
@@ -46,20 +46,20 @@ class SystemItem(Base):
         return f'<SystemItem {self.name}>'
 
 
-class HistoryItem(HistoryBase):
-    __tablename__ = "history_item"
-    id = Column(String, ForeignKey('system_item.id', ondelete='CASCADE'), nullable=False)
-    url = Column(String, nullable=True)
-    date = Column(DateTime(timezone=datetime.timezone.utc), primary_key=True, nullable=False)
-    type = Column(ChoiceType(SystemItemType, impl=String()), nullable=False)
-    parentId = Column(UUID(as_uuid=True), default=None, nullable=True)
-    size = Column(Integer, nullable=True)
-
-    def __str__(self):
-        return f'{self.url} {self.type}'
-
-    def __repr__(self):
-        return f'<HistorySystemItem {self.name}>'
+# class HistoryItem(HistoryBase):
+#     __tablename__ = "history_item"
+#     id = Column(UUID(as_uuid=True), ForeignKey('system_item.id', ondelete='CASCADE'), nullable=False)
+#     url = Column(String, nullable=True)
+#     date = Column(DateTime(timezone=datetime.timezone.utc), primary_key=True, nullable=False)
+#     type = Column(ChoiceType(SystemItemType, impl=String()), nullable=False)
+#     parentId = Column(UUID(as_uuid=True), default=None, nullable=True)
+#     size = Column(Integer, nullable=True)
+#
+#     def __str__(self):
+#         return f'{self.url} {self.type}'
+#
+#     def __repr__(self):
+#         return f'<HistorySystemItem {self.name}>'
 
 
 @event.listens_for(SystemItem, 'after_insert')
